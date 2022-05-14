@@ -1,0 +1,98 @@
+[
+  {
+    "_id": {
+      "$oid": "62775d6d0e80b4db07d4bec1"
+    },
+    "CustomerID": "101",
+    "CustomerName": "Vikash",
+    "MeterType": "Electric",
+    "MeterID": "E101",
+    "PreviousReading": "36536",
+    "CurrentReading": "37689",
+    "EmailAddress": "vikas@gmail.com"
+  },
+  {
+    "_id": {
+      "$oid": "62775d9e0e80b4db07d4bec2"
+    },
+    "CustomerID": "102",
+    "CustomerName": "Ram",
+    "MeterType": "Electric",
+    "MeterID": "E102",
+    "PreviousReading": "64646",
+    "CurrentReading": "68746",
+    "EmailAddress": "Ram@gmail.com"
+  },
+  {
+    "_id": {
+      "$oid": "62775dc80e80b4db07d4bec3"
+    },
+    "CustomerID": "103",
+    "CustomerName": "Shyam",
+    "MeterType": "Electric",
+    "MeterID": "E103",
+    "PreviousReading": "64646",
+    "CurrentReading": "68746",
+    "EmailAddress": "Shyam@gmail.com"
+  },
+  {
+    "_id": {
+      "$oid": "62775de70e80b4db07d4bec4"
+    },
+    "CustomerID": "104",
+    "CustomerName": "John",
+    "MeterType": "Electric",
+    "MeterID": "E104",
+    "PreviousReading": "64646",
+    "CurrentReading": "68746",
+    "EmailAddress": "John@gmail.com"
+  },
+  {
+    "_id": {
+      "$oid": "62775e050e80b4db07d4bec5"
+    },
+    "CustomerID": "105",
+    "CustomerName": "Shyam",
+    "MeterType": "Water",
+    "MeterID": "W105",
+    "PreviousReading": "64646",
+    "CurrentReading": "68746",
+    "EmailAddress": "Shyam@gmail.com"
+  },
+  {
+    "_id": {
+      "$oid": "62775e250e80b4db07d4bec6"
+    },
+    "CustomerID": "106",
+    "CustomerName": "Denver",
+    "MeterType": "Water",
+    "MeterID": "W106",
+    "PreviousReading": "64646",
+    "CurrentReading": "68746",
+    "EmailAddress": "Denver@gmail.com"
+  },
+  {
+    "_id": {
+      "$oid": "62775e4a0e80b4db07d4bec7"
+    },
+    "CustomerID": "107",
+    "CustomerName": "Bradd",
+    "MeterType": "Water",
+    "MeterID": "W107",
+    "PreviousReading": "64646",
+    "CurrentReading": "68746",
+    "EmailAddress": "Bradd@gmail.com"
+  },
+  {
+    "_id": {
+      "$oid": "62775ec60e80b4db07d4bec8"
+    },
+    "CustomerID": "108",
+    "CustomerName": "Maria",
+    "MeterType": "Water",
+    "MeterID": "W108",
+    "PreviousReading": "64646",
+    "CurrentReading": "68746",
+    "EmailAddress": "Maria@gmail.com"
+  }
+]

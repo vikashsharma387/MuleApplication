@@ -1,0 +1,228 @@
+{
+	"info": {
+		"_postman_id": "7fe8a428-7d69-488f-83ec-afd02b97424a",
+		"name": "MuleCI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "SignInRequest",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"CustomerRequest\":\r\n{\r\n\"Name\":\"MuleTest\",\r\n\"City\":\"MuleCity\",\r\n\"State\":\"MuleSTate\",\r\n\"FlatNumber\":\"MuleFlat\",\r\n\"CustomerPIN\":\"1234\",\r\n\"LastModifiedDate\":\"4-May-2022\",\r\n\"EmailAddress\":\"Avika1@gmail.com\"\r\n}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8087/SFLogin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8087",
+					"path": [
+						"SFLogin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ValidateLogin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"ID\":\"a005g000032K1R7\",\r\n\"Password\":\"Password\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8081/SFValidateLogin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"SFValidateLogin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ApplyMeterConn",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"OwnerName\":\"Vikash\",\r\n\"Address\":\" Bangalore\",\r\n\"MeterType\":\"Water\",\r\n\"UsageType\":\"Commercial\",\r\n\"PhoneNumber\":\"746437643\",\r\n\"Email\":\"vikas.sharma@gmail.com\",\r\n\"CurrentAddress\": \"Kanpur\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8082/ApplyMeterConn",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8082",
+					"path": [
+						"ApplyMeterConn"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GenerateCustomerBill",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"CustomerID\": \"101\",\r\n  \"CustomerName\": \"Vikash\",\r\n  \"MeterType\": \"Electric\",\r\n  \"MeterID\": \"E101\",\r\n  \"PreviousReading\": \"36536\",\r\n  \"CurrentReading\": \"37689\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8088/GenerateBill",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8088",
+					"path": [
+						"GenerateBill"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "OnDemandCalculateCustomerBill",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"CustomerID\": \"101\",\r\n  \"CustomerName\": \"Vikash\",\r\n  \"MeterType\": \"Water\",\r\n  \"MeterID\": \"E101\",\r\n  \"PreviousReading\": \"358665\",\r\n  \"CurrentReading\": \"375765\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8088/GetCustData",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8088",
+					"path": [
+						"GetCustData"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetTarrifPlanDetails",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8091/TarrifPlans?EnergyType=Water1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8091",
+					"path": [
+						"TarrifPlans"
+					],
+					"query": [
+						{
+							"key": "EnergyType",
+							"value": "Water1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SubscribeNewsLetter",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"CustomerID\":\"104\",\r\n\"EmailAddress\": \"vikas.sharma387@gmail.com\",\r\n\"Frequency\": \"Montly\",\r\n\"MeterType\":\"Water\",\r\n\"UsageType\" : \"Commercial\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8094/SubscribenewsLetter",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8094",
+					"path": [
+						"SubscribenewsLetter"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteAfterTestingSchedulerForBatchBill",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8094/SchedulerForBatchBill",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8094",
+					"path": [
+						"SchedulerForBatchBill"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
