@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:azure-storage="http://www.mulesoft.org/schema/mule/azure-storage" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/azure-storage http://www.mulesoft.org/schema/mule/azure-storage/current/mule-azure-storage.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<mongo:config name="MongoDB_Config" doc:name="MongoDB Config" doc:id="fbfa40af-e227-4513-bfa5-a5c78cae7911" >
+		<mongo:connection-string-connection connectionString="mongodb+srv://viksh:Password1234@cluster0.xfc2j.mongodb.net/IntegrationDB" />
+	</mongo:config>
+	<flow name="GetCustomerAssetListWaterFlow" doc:id="d371688b-234d-4b11-b3fc-795007544124" initialState="stopped">
+		<scheduler doc:name="Scheduler" doc:id="108eb399-77e2-4d48-9ecf-0af34c49ded1" >
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</scheduler>
+		<mongo:find-documents doc:name="Find customer documents for WaterMeter from DB" doc:id="9c94d0e1-59e1-497e-bdd3-2fe7641725b3" config-ref="MongoDB_Config" collectionName="CustomerData" fields="Address,MeterType,UsageType,PhoneNumber,Email,OwnerName,CurrentAddress"/>
+		<ee:transform doc:name="Transform Message" doc:id="d86725ab-efa3-454e-9bee-206bf9f31139" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter($.MeterType=="Water") map((item,index) ->
+	{
+		"id":item."_id",
+		"OwnerName": item.OwnerName,
+		"Address":  item.Address,
+		"MeterType":item.MeterType,
+		"UsageType": item.UsageType,
+		"PhoneNumber" : item.PhoneNumber,
+		"Email": item.Email
+	}
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Logger Framework" doc:id="c8019683-4547-466f-bb2a-6e9f784ff855" name="LoggerFrameworkSub_Flow"/>
+	</flow>
+	<flow name="GetCustomerAssetListElectricFlow" doc:id="51d8ea3d-8b13-4482-96fe-5cb8dcbd2a45" initialState="stopped">
+		<scheduler doc:name="Scheduler" doc:id="9509f75a-4930-40ac-bf1f-cfff37b29745" >
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</scheduler>
+		<mongo:find-documents doc:name="Find Customer documents from DB" doc:id="3fad212e-c7b0-418c-ae13-53e89f8d6a45" config-ref="MongoDB_Config" collectionName="CustomerData" fields="Address,MeterType,UsageType,PhoneNumber,Email,OwnerName,CurrentAddress"/>
+		<ee:transform doc:name="Filter ElectricPower Message" doc:id="84f68960-b54e-4584-b67a-f6a37c330176" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload filter($.MeterType=="Electric") map((item,index) ->
+	{
+		"id":item."_id",
+		"OwnerName": item.OwnerName,
+		"Address":  item.Address,
+		"MeterType":item.MeterType,
+		"UsageType": item.UsageType,
+		"PhoneNumber" : item.PhoneNumber,
+		"Email": item.Email
+	}
+)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="LoggerFramework" doc:id="446da687-af32-42af-9aa9-8f3a4392ccac" name="LoggerFrameworkSub_Flow"/>
+	</flow>
+</mule>

@@ -1,0 +1,74 @@
+  [
+  {
+    "_id": {
+      "$oid": "62762fcb9c23c22ed6a5fb2a"
+    },
+    "PlanType": "Basic",
+    "MeterType": "Electric",
+    "UsageType": "Residential",
+    "MinimumBill": "2000"
+  },
+  {
+    "_id": {
+      "$oid": "627630829c23c22ed6a5fb2b"
+    },
+    "PlanType": "Premium",
+    "MeterType": "Electric",
+    "UsageType": "Residential",
+    "MinimumBill": "3000"
+  },
+  {
+    "_id": {
+      "$oid": "627630d79c23c22ed6a5fb2c"
+    },
+    "PlanType": "Basic",
+    "MeterType": "Electric",
+    "UsageType": "Commercial",
+    "MinimumBill": "4000"
+  },
+  {
+    "_id": {
+      "$oid": "627631199c23c22ed6a5fb2e"
+    },
+    "PlanType": "Premium",
+    "MeterType": "Electric",
+    "UsageType": "Commercial",
+    "MinimumBill": "6000"
+  },
+  {
+    "_id": {
+      "$oid": "6276313a9c23c22ed6a5fb2f"
+    },
+    "PlanType": "Premium",
+    "MeterType": "Water",
+    "UsageType": "Commercial",
+    "MinimumBill": "4000"
+  },
+  {
+    "_id": {
+      "$oid": "6276319c9c23c22ed6a5fb30"
+    },
+    "PlanType": "Basic",
+    "MeterType": "Water",
+    "UsageType": "Commercial",
+    "MinimumBill": "2500"
+  },
+  {
+    "_id": {
+      "$oid": "627631a89c23c22ed6a5fb31"
+    },
+    "PlanType": "Premium",
+    "MeterType": "Water",
+    "UsageType": "Residential",
+    "MinimumBill": "2000"
+  },
+  {
+    "_id": {
+      "$oid": "627631c59c23c22ed6a5fb32"
+    },
+    "PlanType": "Basic",
+    "MeterType": "Water",
+    "UsageType": "Residential",
+    "MinimumBill": "1000"
+  }
+]

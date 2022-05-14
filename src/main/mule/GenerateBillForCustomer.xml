@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config_GenerateCustomerBill" doc:name="HTTP Listener config" doc:id="db591418-f145-4cb2-a24d-709309284ece" >
+		<http:listener-connection host="localhost" port="8088" >
+		</http:listener-connection>
+	</http:listener-config>
+	<flow name="ScheduleGenerateBillForCustomerFlow" doc:id="5148427d-a0ce-4823-8f99-7244ed23455b" initialState="stopped">
+		<scheduler doc:name="Bill Scheduler " doc:id="5d720ffb-6a54-4f80-aafb-169b85b27c9d" >
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</scheduler>
+		<set-variable value='#[{&#10;  "CustomerID": "101",&#10;  "CustomerName": "Vikash",&#10;  "MeterType": "Water",&#10;  "MeterID": "E101",&#10;  "PreviousReading": "358665",&#10;  "CurrentReading": "375765"&#10;}]' doc:name="set customerData" doc:id="a72c5d0b-6a6e-4d56-a63c-b535a2a61e40" variableName="varcustData"/>
+		<set-payload value="#[vars.varcustData]" doc:name="Set customer Data Payload" doc:id="09a4f4c2-dd29-46d6-bd88-a86a52b4838d" />
+		<flow-ref doc:name="Flow Reference" doc:id="001b5eaa-8736-4745-b33c-00f9e70cbb8d" name="LoggerFrameworkSub_Flow"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="6c20ff17-91cf-4931-921b-3934f67ea324" >
+			<route >
+				<java:invoke-static method="ResidentialElectricBill(int,int)" doc:name="Invoke static CalculateBill" doc:id="9c2ae8bd-8db0-4a44-af80-9cc33640fdb2" class="com.powerutility.CalculateCustomerBill">
+			<java:args><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	InitialReading: payload.PreviousReading as Number,
+	finalReading: payload.CurrentReading as Number
+}]]]></java:args>
+		</java:invoke-static>
+				<set-variable value="#[payload]" doc:name="Saving bill Amount" doc:id="7c74aa3f-c31e-49a6-a2bd-ed16fcafef2c" variableName="varGeneratedBill" />
+			</route>
+			<route >
+				<set-variable value="#[payload]" doc:name="Save payload in Var" doc:id="101a0526-b787-482a-982d-989c77b9d9ac" variableName="StoreInRequest" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="47224957-bf71-4551-ab4a-5ed6f877e312" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Amount": vars.varGeneratedBill,
+	"Data":vars.StoreInRequest
+	
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Logger framework" doc:id="846ced84-1932-4db8-93d7-7cb49bc2434f" name="LoggerFrameworkSub_Flow"/>
+	</flow>
+	<flow name="OnDemandBillGenerateForCustomer" doc:id="82ef5a18-8e3b-4cb0-ab36-c9ca5185e74b" >
+		<http:listener doc:name="Listener" doc:id="3e766484-e3e3-4766-ae9e-652c0b8bf2ae" config-ref="HTTP_Listener_config_GenerateCustomerBill" path="/GetCustData">
+			<http:error-response statusCode="#[vars.varstatus]" >
+				<http:body ><![CDATA[#[output text/json --- 
+payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<set-variable value="#[payload.MeterType]" doc:name="rcvRequest" doc:id="a86dbebb-8002-4c23-97e3-ac15a482ac5c" variableName="varMeterType"/>
+		<choice doc:name="Choice : decide the  meter Type" doc:id="4084c3b6-6960-4653-a7bd-fe2020444bf2" >
+			<when expression='#[vars.varMeterType=="Electric"]'>
+				<flow-ref doc:name="Flow Reference-Electric Meter" doc:id="c39f5b0c-ee87-4095-9c63-13d9cf2500cc" name="GenerateElectricBill" />
+			</when>
+			<when expression='#[vars.varMeterType =="Water"]'>
+				<flow-ref doc:name="Flow Reference- Water Meter" doc:id="4968cbdf-82ab-457d-bbf8-0e62bcc86392" name="GenerateWaterBill"/>
+			</when>
+			<otherwise >
+				<set-payload value='#["Meter Type is not correct : "  ++ (vars.varMeterType)]' doc:name="Set Payload" doc:id="29a82a56-a4d2-469b-aa55-e74d30b22ece" />
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="be4c02db-aa42-4cdd-b0a0-28b3588cf51f" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="92e7aa76-206f-4134-9637-6c797dd5abaf" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="varstatus" ><![CDATA[500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="GenerateWaterBill" doc:id="576e2725-77e6-4c96-96f2-b1e6a72f9f2b" >
+		<flow-ref doc:name="Flow Reference" doc:id="7e29edd8-e62c-435a-a966-39c603557c33" name="LoggerFrameworkSub_Flow"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f0490ec6-643e-4403-adcf-2f83bbd13768" >
+			<route >
+				<java:new doc:name="New create object" doc:id="2cb3f979-4ee3-495e-b08f-57c0e6e27ea5" class="com.powerutility.CalculateCustomerBill" constructor="CalculateCustomerBill()" target="objCalacwaterBill" />
+				<java:invoke doc:name="Invoke water method" doc:id="97664fff-0bdc-4044-95ce-798f828adc92" instance="#[vars.objCalacwaterBill]" class="com.powerutility.CalculateCustomerBill" method="NonStaticComercialWaterBill(int,int)">
+			<java:args><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	InitialReading: payload.PreviousReading as Number,
+	finalReading: payload.CurrentReading as Number
+}]]]></java:args>
+		</java:invoke>
+				<set-variable value="#[payload]" doc:name="Bill Calculated" doc:id="e38fc5ea-6a78-4988-aac0-4f2ecdc27717" variableName="varwaterBill" />
+			</route>
+			<route >
+				<set-variable value="#[payload]" doc:name="Request Rcv" doc:id="ec13456a-8672-4c6b-b8d0-1aa2c9213081" variableName="varStoreInWaterRequest"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="2e71ba87-581b-421d-ac24-9f3cfd64a7c1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Amount": vars.varwaterBill,
+	"Data":vars.varStoreInWaterRequest
+	
+	
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f132b841-13d5-4d62-96d4-c436292d46f5" >
+				<ee:transform doc:name="Transform Message" doc:id="e8030ac6-0a15-4247-be1e-dd8af621eb0e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error":"Error while generating the water bill  : " ++ (error.description default '')
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="global error Handler" doc:id="ea22ea5f-136d-41aa-bb81-f2db71157ac4" name="GlobalErrorHandlerFlow"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="GenerateElectricBill" doc:id="deda6a68-6b3c-42d3-9475-c59d2e21296d" >
+		<logger level="INFO" doc:name="Logger" doc:id="18aa0490-9b8c-46ed-86b5-ce0ebd1c39cd" message="#[payload]"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="5bdf0555-99ae-43aa-b5de-285c489889d0" >
+			<route >
+				<java:new constructor="CalculateCustomerBill()" doc:name="New  Elctric Object " doc:id="0ac40ec5-82bb-4b1f-890a-6028dbe1e892" class="com.powerutility.CalculateCustomerBill" target="objCalacBill" />
+				<java:invoke doc:name="Invoke Electric calculation method" doc:id="ab68876c-8d34-44c1-b7d8-2c3baf05fa22" instance="#[vars.objCalacBill]" class="com.powerutility.CalculateCustomerBill" method="NonStaticCommercialElectricBill(int,int)">
+			<java:args><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	InitialReading: payload.PreviousReading as Number,
+	finalReading: payload.CurrentReading as Number
+}]]]></java:args>
+		</java:invoke>
+				<set-variable value="#[payload]" doc:name="Bill Calculated" doc:id="ad5786a1-9b33-441e-836f-82fa4c71832b" variableName="varBill" />
+			</route>
+			<route >
+				<set-variable value="#[payload]" doc:name="Request Rcv" doc:id="d91c8c6b-c99e-4cae-8e49-ce07e2c4e030" variableName="varStoreInElectricRequest"/>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="10d1a1f2-4eb3-4ac7-a719-d6f4105b0ffd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Amount": vars.varBill,
+	"Data":vars.varStoreInElectricRequest
+	
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="f6ed5876-5fc5-409d-8b56-312b5451aee4" type="ANY">
+				<set-payload value="#['Error While getting the bill  :  ' ++ (error.description default '' )]" doc:name="Set Payload" doc:id="5ff255ab-c10a-46f1-8f58-c923328f94e5" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

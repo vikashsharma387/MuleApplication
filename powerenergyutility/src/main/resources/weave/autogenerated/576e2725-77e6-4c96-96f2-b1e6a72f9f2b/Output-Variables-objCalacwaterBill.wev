@@ -1,0 +1,6 @@
+%dw 2.0
+
+type auto_576e2725_77e6_4c96_96f2_b1e6a72f9f2b_Output_Variables_objCalacwaterBill = {|  |} {"typeAlias": "CalculateCustomerBill",
+"class": "com.powerutility.CalculateCustomerBill",
+"typeId": "com.powerutility.CalculateCustomerBill"}
+

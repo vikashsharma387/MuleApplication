@@ -1,0 +1,12 @@
+{
+"CustomerRequest":
+{
+"Name":"",
+"City":"",
+"State":"",
+"FlatNumber":"",
+"CustomerPIN":"",
+"LastModifiedDate":"",
+"EmailAddress":""
+}
+}

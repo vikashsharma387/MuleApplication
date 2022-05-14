@@ -1,0 +1,61 @@
+%dw 2.0
+
+type auto_e1614fe7_bb33_43c5_af65_5083b9992866_Output_Payload = {|
+  "0": org_mule_runtime_api_message_Message, 
+  "1": org_mule_runtime_api_message_Message_29
+|}
+type org_mule_runtime_api_message_Message_29 = {|
+  payload: {|  |}, 
+  attributes: Null
+|} {"typeId": "org.mule.runtime.api.message.Message"}
+
+
+type org_mule_runtime_api_message_Message = {|
+  payload: {|
+    OwnerName: String, 
+    Address: String, 
+    MeterType: String, 
+    UsageType: String, 
+    PhoneNumber: String, 
+    Email: String, 
+    CurrentAddress: String
+  |} {"example": "{\\\"OwnerName\\\":\\\"Vikash\\\",\\\"Address\\\":\\\" Bangalore\\\",\\\"MeterType\\\":\\\"Eletric\\\",\\\"UsageType\\\":\\\"Commercial\\\",\\\"PhoneNumber\\\":\\\"746437643\\\",\\\"Email\\\":\\\"vikas.sharma@gmail.com\\\",\\\"CurrentAddress\\\":\\\"Kanpur\\\"}"}, 
+  attributes: org_mule_extension_http_api_HttpRequestAttributes
+|} {"typeId": "org.mule.runtime.api.message.Message"}
+type org_mule_extension_http_api_HttpRequestAttributes = {|
+  listenerPath: String, 
+  rawRequestPath: String, 
+  relativePath: String, 
+  maskedRequestPath: String, 
+  version: String, 
+  scheme: String, 
+  method: String, 
+  requestUri: String, 
+  rawRequestUri: String, 
+  queryString: String, 
+  localAddress: String, 
+  remoteAddress: String, 
+  clientCertificate?: java_security_cert_Certificate, 
+  queryParams: { _?: String }, 
+  uriParams: { _?: String }, 
+  requestPath: String, 
+  headers: { _?: String }
+|} {"typeAlias": "HttpRequestAttributes",
+"typeId": "org.mule.extension.http.api.HttpRequestAttributes"}
+type java_security_cert_Certificate = {|
+  encoded?: Binary, 
+  publicKey?: java_security_PublicKey, 
+  "type"?: String
+|} {"typeAlias": "Certificate",
+"typeId": "java.security.cert.Certificate"}
+type java_security_PublicKey = {|  |} {"typeAlias": "PublicKey",
+"typeId": "java.security.PublicKey"}
+
+
+
+
+
+
+
+
+

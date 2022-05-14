@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd">
+	<http:listener-config name="HTTP_Listener_Pull_DataFromSF" doc:name="HTTP Listener config" doc:id="97966f1f-07c3-4a43-a7ca-aa5e583ce041" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="LoginServiceFlow" doc:id="df7c33c5-844c-4cf9-8839-652c2716a971" >
+		<http:listener doc:name="Login Listener" doc:id="dc09fc6c-e047-4346-851f-a4a88a76ae53" config-ref="HTTP_Listener_Pull_DataFromSF" path="/SFValidateLogin"/>
+		<ee:transform doc:name="Transform Message" doc:id="130fa758-3465-46b5-a131-b321d962626d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	ids: "a005g000032K1R7"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<async doc:name="Async" doc:id="d6749acb-9322-4537-b813-2690fda178b3" >
+			<salesforce:retrieve type="CustomerData__c" doc:name="Retrieve user cred from Salesforce" doc:id="83ba492d-0b90-48e4-a3d4-a75973b0295a" config-ref="Salesforce_Config" />
+		</async>
+		<ee:transform doc:name="Transform Message" doc:id="c394f474-6b19-4a7e-954c-37010f381128" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Status":"Success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5d85f2ca-cc13-4e91-8331-8365673abcf2" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="f257c3e5-b0e1-4c7f-b497-54559d60a184" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+"Error":error.detailedDescription
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="Global Error Handler" doc:id="176bbe66-d090-4565-8761-a4c58abf83f2" name="GlobalErrorHandlerFlow"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

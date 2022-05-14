@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<http:listener-config name="HTTP_Listener_config_PlanRateListner" doc:name="HTTP Listener config" doc:id="c5f26e00-a0b3-4bb3-9e16-f0097396dbed" >
+		<http:listener-connection host="localhost" port="${port}" />
+	</http:listener-config>
+	<os:config name="ObjectStore_Config_PlanTarriff" doc:name="ObjectStore Config" doc:id="edcab1b6-1c56-4e70-abdb-b6932da439bf" />
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="2282e176-d88d-4a47-9713-db3c8ec2ad41" config-ref="ObjectStore_Config_PlanTarriff" />
+	<configuration-properties doc:name="Configuration properties" doc:id="0797f059-de88-46fe-a5a7-becdddf92b47" file="dev.properties" />
+	<flow name="GetPlansFromDBAndStoreInObjectStore" doc:id="1059caa1-3da4-4672-95f9-322edb15a160" >
+		<mongo:find-documents collectionName="PlanTarriffDetails" fields="PlanType,MeterType,MinimumBill,UsageType" doc:name="Find tarrif plans document from MongoDB" doc:id="46f26348-338e-4113-ae59-8c9eec0f084d" config-ref="MongoDB_Config"/>
+		<choice doc:name="Decide the route based on Meter Type" doc:id="a20b1935-ab70-4090-8dd7-84cb651d3800" >
+			<when expression='#[vars.varEnergyType=="Electric"]'>
+				<ee:transform doc:name="Transform Message" doc:id="954ab7a2-1769-4578-b8ff-6b41fddcdb4a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload filter($.MeterType=="Electric") map((item,index)->
+	{
+	"MeterType":item.MeterType,
+	"PlanType":item.PlanType,
+	"usgeType":item.UsageType,
+	"MinimumBill":item.MinimumBill
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<os:store doc:name="Store the data in  electric cache store" doc:id="5f6eddc7-9f9f-43dd-92a4-49c9665289bd" key="ElctricMeterPlans" objectStore="Object_store" />
+				<flow-ref doc:name="logger framework" doc:id="d6c52ffb-7f24-49ce-890d-802b665c337b" name="LoggerFrameworkSub_Flow" />
+			</when>
+			<when expression='#[vars.varEnergyType=="Water"]'>
+				<ee:transform doc:name="Transform Message" doc:id="7462e261-a10c-44c8-9d12-ab078b606a8d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter($.MeterType=="Water") map((item,index)->
+	{
+	"MeterType":item.MeterType,
+	"PlanType":item.PlanType,
+	"usgeType":item.UsageType,
+	"MinimumBill":item.MinimumBill
+})]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<os:store doc:name="Store the data in water cache store" doc:id="8747ef5b-f702-4780-9291-2fe03b037e63" key="WaterMeterPlans"/>
+				<flow-ref doc:name="logger framework" doc:id="9a914dc1-fcd8-41a6-a8f5-7fc783dcd1d3" name="LoggerFrameworkSub_Flow"/>
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Flow Reference" doc:id="3917660d-207e-4968-af0f-dbb26f69b315" name="LoggerFrameworkSub_Flow" targetValue='#["No Energy Meter Type is matching"]'/>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a72c9c49-119d-4eb6-bcd3-bb0954d3cf5c" >
+				<ee:transform doc:name="Transform Message" doc:id="1b7772b9-477d-4ca4-82dd-ef93276fc1d3" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="PlanTarriffDetails" doc:id="845c6dac-5916-4280-b793-d8426080ec84" >
+		<http:listener doc:name="Plan Rate Listner" doc:id="5e20c3b8-0ee0-4f2f-9d58-a5786feef800" config-ref="HTTP_Listener_config_PlanRateListner" path="/TarrifPlans" />
+		<set-variable value="#[attributes.queryParams.EnergyType]" doc:name="Set Incoming energy Type" doc:id="fafcae68-d29d-4e3c-8ff0-c612b3d6d8b0" variableName="varEnergyType"/>
+		<choice doc:name="Route Message as per energy type request" doc:id="be94de8b-ac59-4ae3-946b-d4c24223ab77" >
+			<when expression='#[vars.varEnergyType=="Electric"]'>
+				<os:contains doc:name="Check key in electric  Object store" doc:id="56dc037e-c199-4965-a47c-6df4bbe96d95" key="ElctricMeterPlans" objectStore="Object_store" />
+				<ee:transform doc:name="Transform Message" doc:id="a9cbe7f5-f760-4b3a-9612-44ab4dec32da">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ObjResponse":payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<choice doc:name="Decide to get Data from Cache or from Parent Service" doc:id="a78fbd56-3996-41b9-af49-27dde97e132a">
+			<when expression="#[payload.ObjResponse==false]">
+				<flow-ref doc:name="Get data from parent flow service" doc:id="8f10f73a-6101-4a69-b42f-3c931019682d" name="GetPlansFromDBAndStoreInObjectStore" targetValue="condition verified n choice" />
+			</when>
+					<otherwise>
+				<os:retrieve doc:name="Retrieve data from electric Cache" doc:id="315151e5-488d-4dd5-8235-9fad9e4cee73" key="ElctricMeterPlans" objectStore="Object_store" />
+				<flow-ref doc:name="Logger framewrok" doc:id="90ca8259-b201-496b-94a3-110a57d6ba9f" name="LoggerFrameworkSub_Flow" targetValue="default" />
+			</otherwise>
+		</choice>
+			</when>
+			<when expression='#[vars.varEnergyType=="Water"]'>
+				<os:contains doc:name="Check key in water Object store" doc:id="2e083e87-463c-4f18-9f1a-d18b1772703d" key="WaterMeterPlans" objectStore="Object_store"/>
+				<ee:transform doc:name="Transform Message" doc:id="df4e8b49-6316-4bb2-b5a7-2028eb47e401">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"ObjWaterResponse":payload
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Decide to get Data from Cache or from Parent Service" doc:id="a79aac8a-5739-4a53-8eb4-0024f3a0c287" >
+					<when expression="#[payload.ObjWaterResponse== false]">
+						<flow-ref doc:name="Get data from parent flow service" doc:id="24767ae7-af7d-4fc8-870c-1785d3ce106d" name="GetPlansFromDBAndStoreInObjectStore"/>
+					</when>
+					<otherwise >
+						<os:retrieve doc:name="Retrieve data from Water cache" doc:id="e8772471-0174-48fd-85c3-7a476f1f5bdb" key="WaterMeterPlans"/>
+						<flow-ref doc:name="Logger framewrok" doc:id="575886aa-22da-4b4a-b160-c967f74d99f7" name="LoggerFrameworkSub_Flow"/>
+					</otherwise>
+				</choice>
+			</when>
+			<otherwise >
+				<set-payload value='#["Prvide valid input : "  ++ (vars.varEnergyType)]' doc:name="Set the payload for incorrect energy Type" doc:id="857abaa8-5a43-417f-abc6-8e1a8b024735" />
+				<ee:transform doc:name="Transform Message" doc:id="62f078ea-ca27-423a-b292-1924da97fd96" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d7e61460-b8fe-410d-a212-ac2be43b2a5f" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="3493f4c3-1d7f-4b20-8783-915923190bbe" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Error":"Error while getting the plans tariff details  : " ++ (error.description default '')
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="global error handler" doc:id="99d61c97-2036-4b1f-aa4e-b619bd74ebe3" name="GlobalErrorHandlerFlow"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

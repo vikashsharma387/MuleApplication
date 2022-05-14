@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="schedulerToGenrateBillAndNotificationToCustomerFlow" doc:id="5cec2cf1-cd2f-4d49-be8f-6459f8859b68" >
+		<scheduler doc:name="Scheduler Bill Generate Monthly" doc:id="ce105b1d-f27f-446a-8c52-87b42653c2b3" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="30" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<mongo:find-documents doc:name="Fetch CustomerData To generate Bill" doc:id="f9030557-3e32-40fc-9684-92bca8a8d102" config-ref="MongoDB_Config" collectionName="CustomerBillData" fields="CustomerID,CustomerName,MeterType,MeterID,PreviousReading,CurrentReading,EmailAddress"/>
+		<ee:transform doc:name="Transform Message" doc:id="92d4582a-3c6a-4ba8-bf36-4cd115692f45" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Logger Framework" doc:id="0e472349-dcdd-42a2-bf89-c095d77f3258" name="LoggerFrameworkSub_Flow"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="0395fd0b-5213-414b-8953-6ef6c6fe5f39" >
+			<route >
+				<ee:transform doc:name="Filter Electric Meters" doc:id="3061ab6e-8a99-4a0c-967a-d00829c83356" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload filter($.MeterType=="Electric") map((item,index)->
+	{
+		"CustomerID":item.CustomerID,
+		"CustomerName":item.CustomerName,
+		"MeterType":item.MeterType,
+		"MeterID": item.MeterID,
+		"PreviousReading":item.PreviousReading,
+		"CurrentReading":item.EmailAddress
+	}
+)
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<batch:job jobName="BatchJobForElectricBillGeneration" doc:id="5a196bf1-98dc-4ca4-8758-f1ba7b7eb5e1">
+			<batch:process-records>
+				<batch:step name="Batch_Step" doc:id="10f8768f-b7e1-4911-85a0-6f64e863535b">
+					<ee:transform doc:name="Transform Message" doc:id="a51ba43a-8e43-4b47-b9b8-4c2a912e64b3">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var Rate = 7.5 
+
+---
+{
+	CustomerID: payload.CustomerID,
+	CustomerName: payload.CustomerName,
+	MeterType: payload.MeterType,
+	MeterID: payload.MeterID,
+	PreviousReading: payload.PreviousReading,
+	CurrentReading: payload.CurrentReading,
+	EmailAddress: payload.EmailAddress,
+	BillGenerated: 67* Rate
+	
+	}
+	]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator for Electric Bill" doc:id="f85e574f-9bb7-4af2-9333-75bc3fb43b54" size="2">
+						<flow-ref doc:name="Logger Framework" doc:id="cf0059d2-bc70-4d32-9045-22fe91c57079" name="LoggerFrameworkSub_Flow" />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete>
+				<flow-ref doc:name="Logger Framework" doc:id="c13256c3-c79b-47f5-99f8-67686e5da215" name="LoggerFrameworkSub_Flow" />
+			</batch:on-complete>
+		</batch:job>
+			</route>
+			<route >
+				<ee:transform doc:name="Filter Water Meters" doc:id="482e5503-3639-4d70-8b00-f60c952386fa" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+
+payload filter($.MeterType=="Water") map((item,index)->
+	{
+		"CustomerID":item.CustomerID,
+		"CustomerName":item.CustomerName,
+		"MeterType":item.MeterType,
+		"MeterID": item.MeterID,
+		"PreviousReading":item.PreviousReading,
+		"CurrentReading":item.EmailAddress
+	}
+)
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<batch:job jobName="BatchJobForWaterBillGeneration" doc:id="16e86a69-acb5-47e6-947d-2c502c3eb177" >
+					<batch:process-records >
+						<batch:step name="Batch_Step" doc:id="e9b610b8-c45c-4f32-bf60-7c486d1e971b" >
+							<ee:transform doc:name="Transform Message" doc:id="862d1c75-34bb-4b9e-be9c-b516f0f8102c" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var Rate = 4.5 
+
+---
+{
+	CustomerID: payload.CustomerID,
+	CustomerName: payload.CustomerName,
+	MeterType: payload.MeterType,
+	MeterID: payload.MeterID,
+	PreviousReading: payload.PreviousReading,
+	CurrentReading: payload.CurrentReading,
+	EmailAddress: payload.EmailAddress,
+	BillGenerated: 67* Rate
+	
+	}
+	]]></ee:set-payload>
+								</ee:message>
+							</ee:transform>
+							<batch:aggregator doc:name="Batch Aggregator for Water Bill" doc:id="006b37d5-909f-4849-b4d9-9ad1352cb260" size="2">
+								<flow-ref doc:name="Logger Framwork" doc:id="403b6aee-9de0-4207-9f8c-ef51245e04e3" name="LoggerFrameworkSub_Flow"/>
+							</batch:aggregator>
+						</batch:step>
+					</batch:process-records>
+					<batch:on-complete >
+						<flow-ref doc:name="Logger Framework" doc:id="4871caf8-418b-4c55-b66b-576332f593da" name="LoggerFrameworkSub_Flow"/>
+					</batch:on-complete>
+				</batch:job>
+			</route>
+		</scatter-gather>
+	</flow>
+</mule>

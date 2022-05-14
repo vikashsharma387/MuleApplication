@@ -1,0 +1,11 @@
+{
+    "CustomerID": "101",
+    "CustomerName": "Vikash",
+    "MeterType": "Electric",
+    "MeterID": "E101",
+    "PreviousReading": "36536",
+    "CurrentReading": "37689",
+    "EmailAddress": "vikas@gmail.com",
+	"BillGenerated": "6353.00"
+
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns:azure-service-bus-messaging="http://www.mulesoft.org/schema/mule/azure-service-bus-messaging"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/azure-service-bus-messaging http://www.mulesoft.org/schema/mule/azure-service-bus-messaging/current/mule-azure-service-bus-messaging.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd">
+	<azure-service-bus-messaging:config name="Azure_Service_Bus_Messaging_Connector_Config" doc:name="Azure Service Bus Messaging Connector Config" doc:id="c6001cc6-6a09-437c-ba7a-de61bb2767a7" >
+		<azure-service-bus-messaging:sas-connection namespace="energyutility" sharedAccessKeyName="RootManageSharedAccessKey" sharedAccessKey="Q4dRfMRdTgT+1oKS8tRdBa/mh3IBHX22J4pDHIDaSWQ=" />
+	</azure-service-bus-messaging:config>
+	<flow name="GlobalErrorHandlerFlow" doc:id="e1614fe7-bb33-43c5-af65-5083b9992866" >
+		<flow-ref doc:name="Logger Framework" doc:id="d3df68b3-7086-406e-b63c-74ee1e0e9aa5" name="LoggerFrameworkSub_Flow"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f9d4ee58-fd86-4a4e-919f-52a069a95774" >
+			<route >
+				<azure-service-bus-messaging:send doc:name="Send message to Azure Service bus" doc:id="6085bf16-77c8-421e-9f2b-f47a9ac69e40" config-ref="Azure_Service_Bus_Messaging_Connector_Config" destinationName="errorqueue" />
+			</route>
+			<route >
+				<mongo:insert-document collectionName="ErrorDetails" doc:name="Insert Error document to Error Collection" doc:id="227fece2-1d35-4cca-94c1-0a5421bc6204" config-ref="MongoDB_Config"/>
+			</route>
+		</scatter-gather>
+	</flow>
+</mule>

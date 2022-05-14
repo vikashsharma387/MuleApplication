@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce-composite="http://www.mulesoft.org/schema/mule/salesforce-composite"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce-composite http://www.mulesoft.org/schema/mule/salesforce-composite/current/mule-salesforce-composite.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a0356401-cd24-4f95-9008-466f9579689a">
+		<http:listener-connection host="localhost" port="8087" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="794a3dd9-a4b4-4128-9546-ad2cae5dc831" >
+		<salesforce:basic-connection username="vikas.sharma387@gmail.com" password="Mahadevpura@1234" securityToken="jasWx3tDHrU14QHEIs1WnEdx" />
+	</salesforce:sfdc-config>
+	<flow name="powerenergyutilityFlow" doc:id="c6e86d35-2fe3-4c49-b23c-c60499b238fd" >
+		<http:listener doc:name="Listener" doc:id="f43b3aae-421d-46c2-af4f-4d0b708b1836" config-ref="HTTP_Listener_config" path="/SFLogin" allowedMethods="POST">
+			<http:error-response statusCode="500" >
+				<http:body ><![CDATA[#[output text/json --- 
+error.description]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="31d1c81e-a3e2-4a73-b1da-51c8fde0448c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	CustomerName__c: payload.CustomerRequest.Name,
+	CustomerType__c: "Residential",
+	EmailAddress__c: payload.CustomerRequest.EmailAddress,
+	CustomerPIN__c: payload.CustomerRequest.CustomerPIN
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="LoggerFramework" doc:id="020e291b-6cb7-4da6-b907-e4ad33412b7b" name="LoggerFrameworkSub_Flow"/>
+		<salesforce:create doc:name="Create customer account in Salesforce" doc:id="d46ca72b-ee5a-400c-9c78-40521d3d27b2" config-ref="Salesforce_Config" type="CustomerData__c"/>
+		<ee:transform doc:name="Transform Salesforce Response" doc:id="bfacfa6b-2fe1-478d-bb3e-51bbe05aaff8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Response: {
+		StatusCode: payload.items[0].id as String default "",
+		Description: payload.items[0].successful as String default ""
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="771df176-86ee-47e5-be8b-253e85a9b136" type="SALESFORCE:CONNECTIVITY">
+				<set-payload value="#[&quot;Error while connecting to Salesforce : &quot; ++ (error.description default '')]" doc:name="Set Payload" doc:id="4527106a-06ad-40ec-8886-6bfe96f44fea" />
+				<flow-ref doc:name="Global Error Handler" doc:id="6f93a7af-57c1-41c9-bdb7-b8ed468f2976" name="GlobalErrorHandlerFlow"/>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0bdba2a7-0e6e-4008-af3e-69fd601292c9" type="ANY" when="ANY">
+				<set-payload value="#[&quot;Error occur while doing sign up process :  &quot;  ++ (error.description  default '')]" doc:name="Set Payload" doc:id="99010cc0-b7ec-48d3-82a1-85843f885003" />
+				<flow-ref doc:name="global error handler" doc:id="c871a459-0ce8-4683-9ffa-de046db107e9" name="GlobalErrorHandlerFlow"/>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="53536cc6-0928-436a-8e41-3dc0f21223d4" type="SALESFORCE:MUTUAL_AUTHENTICATION_FAILED">
+				<set-payload value="#[&quot;Error while connecting to salesforce :  &quot; ++(error.description default '')]" doc:name="Set Payload" doc:id="677e993f-0de1-495b-9d67-ed75b62b1013" />
+				<flow-ref doc:name="global error handler" doc:id="42afc98d-3719-45bb-a68d-e1e2ca4f6d91" name="GlobalErrorHandlerFlow"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

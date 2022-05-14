@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:azure-storage="http://www.mulesoft.org/schema/mule/azure-storage" xmlns:azure-service-bus-messaging="http://www.mulesoft.org/schema/mule/azure-service-bus-messaging"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:azure-cosmos-db-connector-mule-4="http://www.mulesoft.org/schema/mule/azure-cosmos-db-connector-mule-4" xmlns:cassandra-db="http://www.mulesoft.org/schema/mule/cassandra-db" xmlns:mongo="http://www.mulesoft.org/schema/mule/mongo" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mongo http://www.mulesoft.org/schema/mule/mongo/current/mule-mongo.xsd
+http://www.mulesoft.org/schema/mule/cassandra-db http://www.mulesoft.org/schema/mule/cassandra-db/current/mule-cassandra-db.xsd
+http://www.mulesoft.org/schema/mule/azure-cosmos-db-connector-mule-4 http://www.mulesoft.org/schema/mule/azure-cosmos-db-connector-mule-4/current/mule-azure-cosmos-db-connector-mule-4.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/azure-service-bus-messaging http://www.mulesoft.org/schema/mule/azure-service-bus-messaging/current/mule-azure-service-bus-messaging.xsd
+http://www.mulesoft.org/schema/mule/azure-storage http://www.mulesoft.org/schema/mule/azure-storage/current/mule-azure-storage.xsd">
+	<http:listener-config name="HTTP_Listener_ApplyForMeterConn" doc:name="HTTP Listener config" doc:id="ab51dd6b-ad8f-4674-97da-b0ef335d7c25" >
+		<http:listener-connection host="localhost" port="8082" />
+	</http:listener-config>
+	<vm:config name="VMQueue" doc:name="VM Config" doc:id="80f842b1-7a1e-4b1a-856e-f9a075b5fcba" >
+		<vm:queues >
+			<vm:queue queueName="ElectricMeterTypeQueue" />
+			<vm:queue queueName="WaterMeterTypeQueue" />
+			<vm:queue queueName="UnknownTypeMeterRequest" />
+		</vm:queues>
+	</vm:config>
+	<azure-storage:config name="Azure_Storage_Config" doc:name="Azure Storage Config" doc:id="db950e3b-9dd2-4d7b-8b39-28e4a06cfe05" >
+		<azure-storage:sas-token-azure-connection accountName="customerutilitystorage" sasToken="lggxbSgWOV+wgyQDWoIkRjba+h3V6RMYAnz8kMxU/LMryYlPDs1545X0lLAU7hTSNkrkoirovvf5+AStgL/Xeg==" />
+	</azure-storage:config>
+	<flow name="ApplyForMeterConnectionFlow" doc:id="d2b98422-b683-4529-9d51-d6586e0acba0" >
+		<http:listener doc:name="Listener" doc:id="6f1d26c3-a671-443a-bf81-1146743c6ba4" config-ref="HTTP_Listener_ApplyForMeterConn" path="/ApplyMeterConn"/>
+		<set-variable value="#[payload.MeterType]" doc:name="Set MeterType" doc:id="a7796fdc-c8bc-41ca-b55a-735a3ea94a4e" variableName="varMeterType"/>
+		<logger level="INFO" doc:name="Logger Framework" doc:id="e63b4262-72b0-4bdf-a458-2598954e1991" message="#[vars.varMeterType]"/>
+		<choice doc:name="Choice" doc:id="1032eb3d-e4d6-45e1-8d94-d50d423c513a" >
+			<when expression='#[vars.varMeterType == "Electric"]'>
+				<vm:publish doc:name="Publish Electric Meter Request" doc:id="9ac6f9ed-0b40-4ca8-ad1d-ec1938882df0" config-ref="VMQueue" sendCorrelationId="AUTO" queueName="ElectricMeterTypeQueue"/>
+				<flow-ref doc:name="Logger Framework" doc:id="3a9ecf36-31d4-48b4-b7b6-b115bb7d0892" name="LoggerFrameworkSub_Flow"/>
+			</when>
+			<when expression='#[vars.varMeterType=="Water"]'>
+				<vm:publish doc:name="Publish Water Meter Request" doc:id="84cdf65e-b60c-4ad2-909a-ea2654b9dbb2" config-ref="VMQueue" queueName="WaterMeterTypeQueue"/>
+				<flow-ref doc:name="Logger Framework" doc:id="a8ec3225-9923-4337-a80d-1788da6b9ed0" name="LoggerFrameworkSub_Flow"/>
+			</when>
+			<otherwise >
+				<vm:publish doc:name="Publish Unknown Request" doc:id="98865135-c779-4159-9cf1-78a64fba04b1" config-ref="VMQueue" queueName="UnknownTypeMeterRequest"/>
+				<flow-ref doc:name="Logger Framework" doc:id="d656b68f-31ad-4561-82ed-787970172c95" name="LoggerFrameworkSub_Flow"/>
+			</otherwise>
+		</choice>
+		<set-variable value='{"Status":"Submitted request successfully"}' doc:name="Set Variable" doc:id="d703faf4-bd89-48b7-bb86-3dced3f8ae1a" variableName="varStatus"/>
+		<set-payload value="#[vars.varStatus]" doc:name="Set Payload" doc:id="a97dd925-21c6-4f46-acba-c76b46ad38bb" />
+	</flow>
+	<flow name="vmListnerForElectricMeterType" doc:id="18c79c8a-fcd8-4344-b106-7447303e8da2" >
+		<vm:listener queueName="ElectricMeterTypeQueue" doc:name="VM Listener" doc:id="300351ec-66ef-483f-a2f5-23b79028efc5" config-ref="VMQueue"/>
+		<flow-ref doc:name="Logger Framework" doc:id="17b79bc7-8f02-47c8-8092-b582b52ba0b7" name="LoggerFrameworkSub_Flow"/>
+		<mongo:insert-document collectionName="CustomerData" doc:name="Insert Electric Meter App document" doc:id="c223768e-082f-4b95-bc37-222e4a2ce22d" config-ref="MongoDB_Config"/>
+	</flow>
+	<flow name="vmListnerForWaterMeterType" doc:id="d173ee7a-5714-4aee-b819-a013de763357" >
+		<vm:listener doc:name="Listener" doc:id="a70a3c05-750e-479b-a32f-5b1a05bb6c10" config-ref="VMQueue" queueName="WaterMeterTypeQueue"/>
+		<flow-ref doc:name="Logger Framework" doc:id="8def9a2e-3285-4782-a7c0-5d2e91ad62ab" name="LoggerFrameworkSub_Flow"/>
+		<mongo:insert-document collectionName="CustomerData" doc:name="Insert Water Meter App document" doc:id="c3f66bb2-28ce-45a8-8232-fd559a44b7d9" config-ref="MongoDB_Config"/>
+	</flow>
+	<flow name="SchedulerToConsumeElectricMeter" doc:id="fc7201a6-f098-4439-b965-c7cb32416b49" initialState="stopped">
+		<scheduler doc:name="Scheduler" doc:id="8036e2ab-01bf-4f67-92a0-694fd6cd306c" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="5000"/>
+			</scheduling-strategy>
+		</scheduler>
+		<vm:consume queueName="ElectricMeterTypeQueue" doc:name="Consume" doc:id="1e529672-d26e-46ec-b7cd-d50cadaad585" config-ref="VMQueue"/>
+		<mongo:insert-document collectionName="CustomerData" doc:name="Insert document" doc:id="43d6dcef-6abf-4aa0-a688-eca36d24260d" config-ref="MongoDB_Config" />
+		<flow-ref doc:name="Flow Reference" doc:id="7e1d9c97-6c12-44c8-b766-c58a7782786b" targetValue="Payload Data reteriev from Scheduler ConsumeElectric Meter #[payload]" name="LoggerFrameworkSub_Flow"/>
+		<azure-storage:upload-blob doc:name="Upload blob" doc:id="62c74497-04e5-4571-b952-97f3b3fedac3" config-ref="Azure_Storage_Config">
+			<azure-storage:storblob container="electricmetercontainer" fileName="electricmetercontainer2022" />
+		</azure-storage:upload-blob>
+		<logger level="INFO" doc:name="Logger" doc:id="df4062d7-36f8-4462-8e64-0022849a665f" message="blob uploaded"/>
+	</flow>
+	<flow name="SchedulerToConsumeWaterMeter" doc:id="8fe10a0c-0bb3-415d-bc3e-366cbc657c89" initialState="stopped" maxConcurrency="2">
+		<scheduler doc:name="Scheduler" doc:id="379b8bd5-ebdd-4f07-8b99-1543704511bb" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="4000"/>
+			</scheduling-strategy>
+		</scheduler>
+		<vm:consume queueName="WaterMeterTypeQueue" doc:name="Consume" doc:id="30087f58-47cd-46ef-8a7f-a0513ba9dc16" config-ref="VMQueue"/>
+		<flow-ref doc:name="Flow Reference" doc:id="f7837d46-42b9-4499-8761-15ed1651c8a8" name="LoggerFrameworkSub_Flow" targetValue="Payload Data reteriev from Scheduler ConsumeWater Meter #[payload]"/>
+	</flow>
+</mule>

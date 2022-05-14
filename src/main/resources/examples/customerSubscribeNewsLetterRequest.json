@@ -1,0 +1,7 @@
+{
+"CustomerID":"101",
+"EmailAddress": "vikas.sharma387@gmail.com",
+"Frequency": "Weekly",
+"MeterType":"Electric",
+"UsageType" : "Residential"
+}

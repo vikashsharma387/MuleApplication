@@ -1,0 +1,17 @@
+{
+  "sampleData": {
+    "cbb995b6-23a4-4c54-b270-ef0c16d2c575": {
+      "payload": "sample_data/list_json.json"
+    },
+    "65dcfd44-c8aa-4bfa-a61a-9141844cd0d9": {
+      "payload": "sample_data/defaultvoidtype.dwl"
+    },
+    "d86725ab-efa3-454e-9bee-206bf9f31139": {
+      "payload": "sample_data/list_list_json.json"
+    },
+    "47224957-bf71-4551-ab4a-5ed6f877e312": {
+      "payload": "sample_data/defaultnumbertype.dwl",
+      "vars-varGeneratedBill": "sample_data/defaultnumbertype_1.dwl"
+    }
+  }
+}

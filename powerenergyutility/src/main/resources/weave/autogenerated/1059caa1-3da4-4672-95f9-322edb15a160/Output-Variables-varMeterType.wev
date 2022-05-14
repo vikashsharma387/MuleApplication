@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_1059caa1_3da4_4672_95f9_322edb15a160_Output_Variables_varMeterType = String
+

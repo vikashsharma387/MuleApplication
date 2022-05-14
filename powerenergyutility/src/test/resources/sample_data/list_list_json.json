@@ -1,0 +1,133 @@
+[{
+	"_id": {
+		"$oid": "6273b1886d4a5e444723c863"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b1896d4a5e444723c864"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b18a6d4a5e444723c865"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b18e6d4a5e444723c866"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b18f6d4a5e444723c867"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b18f6d4a5e444723c868"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b1f36d4a5e444723c869"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b1f46d4a5e444723c86a"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b1f56d4a5e444723c86b"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273b1f56d4a5e444723c86c"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273bddfb7dab975b3717a08"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}, {
+	"_id": {
+		"$oid": "6273be8ac79cb82f034d3a8d"
+	},
+	"OwnerName": "Vikash",
+	"Address": " Bangalore",
+	"MeterType": "Electric",
+	"UsageType": "Commercial",
+	"PhoneNumber": "746437643",
+	"Email": "vikas.sharma@gmail.com",
+	"CurrentAddress": "Kanpur"
+}]
